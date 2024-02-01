@@ -1,4 +1,4 @@
-module github.com/k8spacket/k8s-api
+module github.com/k8spacket/k8s-api/v2
 
 go 1.21
 
