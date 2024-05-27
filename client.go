@@ -70,21 +70,18 @@ func FetchK8SInfo() map[string]IPResourceInfo {
 	return m
 }
 
-func GetPodIPsByLabel(key string, value string) []string {
+func GetPodIPsBySelectors(fieldSelector string, labelSelector string) []string {
 
 	list := make([]string, 0)
 
-	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{})
+	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{FieldSelector: fieldSelector, LabelSelector: labelSelector})
 	if err != nil {
 		fmt.Println(err.Error())
 		panic(err.Error())
 	}
 
-	for i := range pods.Items {
-		pod := pods.Items[i]
-		if pod.Labels[key] == value {
-			list = append(list, pod.Status.PodIP)
-		}
+	for _, pod := range pods.Items {
+		list = append(list, pod.Status.PodIP)
 	}
 
 	return list
