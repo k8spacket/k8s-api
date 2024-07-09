@@ -7,6 +7,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"os"
+	"strconv"
 )
 
 type IPResourceInfo struct {
@@ -16,7 +18,14 @@ type IPResourceInfo struct {
 
 var _, clientset = configClusterClient()
 
+var disabledK8sResource, _ = strconv.ParseBool(os.Getenv("K8S_PACKET_K8S_RESOURCES_DISABLED"))
+
 func FetchK8SInfo() map[string]IPResourceInfo {
+
+	if disabledK8sResource {
+		fmt.Println("Getting k8s resources is disabled")
+		return map[string]IPResourceInfo{}
+	}
 
 	fmt.Println("Getting k8s resources")
 
@@ -72,6 +81,10 @@ func FetchK8SInfo() map[string]IPResourceInfo {
 
 func GetPodIPsBySelectors(fieldSelector string, labelSelector string) []string {
 
+	if disabledK8sResource {
+		return []string{}
+	}
+
 	list := make([]string, 0)
 
 	pods, err := clientset.CoreV1().Pods("").List(context.TODO(), metav1.ListOptions{FieldSelector: fieldSelector, LabelSelector: labelSelector})
@@ -88,6 +101,11 @@ func GetPodIPsBySelectors(fieldSelector string, labelSelector string) []string {
 }
 
 func configClusterClient() (error, *kubernetes.Clientset) {
+
+	if disabledK8sResource {
+		return nil, nil
+	}
+
 	config, err := rest.InClusterConfig()
 
 	if err != nil {
